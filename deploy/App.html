@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>boost-rallyprinter</title>
+
+    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",columnCfgs:[{xtype:"rownumberer"},{text:"Rank",dataIndex:"Rank",flex:1},{text:"ID",dataIndex:"FormattedID",flex:1},{text:"Story Name",dataIndex:"Name",flex:3}],launch:function(){var self=this;self.buildTabs(),self.buildStoriesGrid(),self.buildBacklogGrid()},buildTabs:function(){var self=this,tab=Ext.create("Ext.tab.Panel",{activeTab:0,border:!1});self.tab=tab,self.add(tab)},buildStoriesGrid:function(){var self=this,tab=self.tab,store=Ext.create("Rally.data.WsapiDataStore",{model:"User Story",autoLoad:!0,fetch:!0}),rallyGrid=Ext.create("Rally.ui.grid.Grid",{title:"User Stories",model:"User Story",store:store,enableRanking:!0,border:!1,columnCfgs:[{xtype:"rownumberer"},{text:"ID",dataIndex:"FormattedID",flex:1},{text:"Story Name",dataIndex:"Name",flex:3}],tbar:self.buildTbar(),selModel:Ext.create("Ext.selection.CheckboxModel",{mode:"MULTI",allowDeselect:!0}),selType:"checkboxmodel",columnLines:!0});tab.add(rallyGrid),tab.setActiveTab(0)},buildBacklogGrid:function(){var self=this},buildTbar:function(){var self=this;return[{xtype:"rallyiterationcombobox",hidden:!1,listeners:{scope:self,ready:self.iterationCallback,select:self.iterationCallback}},"->",{text:"Print"}]},iterationCallback:function(cmb,scope){var self=this,grid=self.tab.getActiveTab(),store=grid.getStore(),internalId=cmb.getRecord().get("_ref");store.filter([{property:"Iteration",operator:"=",value:internalId}])}});
+
+            Rally.launchApp('CustomApp', {
+                name:"boost-rallyprinter",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        .app {
+     /* Add app styles here */
+}
+
+    </style>
+</head>
+<body></body>
+</html>
