@@ -1,12 +1,27 @@
 Ext.define('CustomApp', {
     extend: 'Rally.app.App'
     ,componentCls: 'app'
+    ,printTitle: 'Boost Print Helper'
+    ,styleSheetPath: 'print.css'
+    ,remote: false
     ,launch: function() {
-        var self = this;
+        var self = this
 
+        self.setRemote();
         self.buildTabs();
         self.buildIterationGrids();
     }
+
+    ,setRemote: (function() {
+        var self = this,
+            url = window.location.origin,
+            expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
+            regex = new RegExp(expression);
+
+        if (url.match(regex)) {
+            self.remote = true;
+        }
+    })
 
     ,buildTabs: (function() {
         var self = this;
@@ -69,6 +84,8 @@ Ext.define('CustomApp', {
         if (hideIteration) {
             items = ['->', {
                 text: 'Print'
+                ,handler: self.printIteration
+                ,scope: self
             }];
         } else {
             var store = Ext.create('Rally.data.WsapiDataStore', {
@@ -95,6 +112,8 @@ Ext.define('CustomApp', {
 
             items = [iterationBox, '->', {
                 text: 'Print'
+                ,handler: self.printIteration
+                ,scope: self
             }];
         }
 
@@ -124,5 +143,89 @@ Ext.define('CustomApp', {
         });
 
         storiesStore.filter(filters);
+    })
+
+    ,printIteration: (function(cb) {
+        var self = this,
+            grid = cb.findParentByType('grid'),
+            selections = grid.getSelectionModel().getSelection();
+
+        if (selections.length > 0) {
+            self.buildTemplate(selections);
+        }
+    })
+
+    ,buildTemplate: (function(selections) {
+        var self = this,
+            data = self.sanitizeData(selections);
+
+        var tpl = new Ext.XTemplate([
+            '<tpl for="artifacts">',
+                '<div class="artifact">',
+                    '<div class="ratio-control">',
+                        '<div class="card-frame">',
+                            '<div class="header">',
+                                '<span class="storyID">{id}</span>',
+                                '<span class="ownerText">{owner}</span>',
+                            '</div>',
+                            '<div class="content">',
+                                '<span class="card-title">{name}</span>',
+                                '<span class="description">{description}</span>',
+                            '</div>',
+                            '<span class="estimate">{estimate}</span>',
+                        '</div>',
+                    '</div>',
+                '</div>',
+                '<div class="{defineBreak}"></div>',
+            '</tpl>'
+        ]);
+
+        var markup = tpl.apply(data);
+
+        self.printCards(markup);
+    })
+
+    ,printCards: (function(markup) {
+        var self = this,
+            options = 'toolbar=1,menubar=1,scrollbars=yes,scrolling=yes,resizable=yes,width=1000,height=500',
+            win = window.open('', self.printTitle, options),
+            doc = win.document,
+            styleSheet = Ext.dom.Query.select('style')[0].innerHTML;
+
+        doc.write('<html><head><title>' + self.printTitle + '</title>');
+
+        if (self.remote) {
+            doc.write('<style>' + styleSheet + '</style>');
+        } else {
+            doc.write('<link href="' + self.styleSheetPath + '" rel="stylesheet" type="text/css" media="screen,print" />');
+        }
+
+        doc.write('</head><body class="landscape">');
+        doc.write(markup);
+        doc.write('</body></html>');
+        doc.close();
+
+        win.focus();
+        win.print();
+        win.close();
+        return false;
+    })
+
+    ,sanitizeData: (function(selections) {
+        var data = {
+            artifacts: []
+        };
+
+        Ext.Array.each(selections, function(selection) {
+            data.artifacts.push({
+                name: selection.get('Name')
+                ,description: selection.get('Description')
+                ,id: selection.get('FormattedID')
+                ,owner: selection.get('Owner')['_refObjectName']
+                ,estimate: selection.get('PlanEstimate')
+            })
+        });
+
+        return data;
     })
 });

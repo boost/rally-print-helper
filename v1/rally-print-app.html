@@ -1,0 +1,471 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>Print Story Cards</title>
+    <meta name="Name" content="App: Rally Print App"/>
+    <meta name="Version" content="2013.06.25"/>
+    <meta name="Vendor" content="Boost New Media"/>
+
+    <style type="text/css" title="printStories">
+        #btnBacklog,
+        #btnStory,
+        #iterationDropdown {
+            display: inline;
+        }
+
+        .interface, #printSection {
+            margin: .1em;
+        }
+
+        html {
+            background-color: #fff;
+            color: #000;
+            font: 1em / 1.26 Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .cb {
+            clear: both;
+        }
+
+        .artifact {
+            display: inline-block;
+            position: relative;
+            width: 99%;
+            background-color: #fff;
+            border: .2em solid #000;
+        }
+
+        .ratio-control {
+            padding-top: 65%;
+        }
+
+        .card-frame {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .header {
+            border: .8em grey;
+            border-bottom-style: solid;
+            height: 15%;
+            vertical-align: middle;
+            width: 100%;
+        }
+
+        .card-title {
+            font: bold 2.7em Genova, sans-serif;
+            padding-left: .3em;
+            padding-top: .5em;
+        }
+
+        .description {
+            float: left;
+            font: 1.4em Georgia, sans-serif;
+            margin: 0.25em auto 0 auto;
+            padding-left: 1.0em;
+            padding-right: 1.0em;
+            padding-top: 2em;
+            overflow-y: hidden;
+            word-wrap: break-word;
+        }
+
+        .owner {
+            float: right;
+            height: 2%;
+        }
+
+        .ownerText {
+            float: right;
+            font: 2.5em / 1.26 Arial, Helvetica, sans-serif;
+            margin-right: 0.3em;
+            margin-top: 0.4em;
+        }
+
+        .storyID {
+            float: left;
+            font: 3em / 1.26 Arial, Helvetica, sans-serif;
+            margin-left: 0.25em;
+            margin-top: 0.3em;
+        }
+
+        .estimate {
+            bottom: .2em;
+            position: absolute;
+            right: 0.5em;
+            font: 3em / 1.26 Arial, Helvetica, sans-serif;
+        }
+
+        .content {
+            height: 80%;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .pb {
+            page-break-after: right;
+            clear: both;
+        }
+
+        .tabs {
+            position: relative;
+            min-height: 200px; /* This part sucks */
+            clear: both;
+            margin: 25px 0;
+        }
+
+        .tab {
+            float: left;
+        }
+
+        .tab .tab-label {
+            background: #eee;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-left: -1px;
+            position: relative;
+            left: 1px;
+        }
+
+        .tab [type=radio] {
+            display: none;
+        }
+
+        .tab-content {
+            background: none repeat scroll 0 0 white;
+            border: 1px solid #CCCCCC;
+            bottom: 0;
+            left: 0;
+            min-height: 500px;
+            overflow: auto;
+            padding: 20px;
+            position: absolute;
+            right: 0;
+            top: 23px;
+        }
+
+        [type=radio]:checked ~ label {
+            background: white;
+            border-bottom: 1px solid white;
+            z-index: 2;
+        }
+
+        [type=radio]:checked ~ label ~ .tab-content {
+            z-index: 1;
+        }
+    </style>
+    </head>
+
+    <body>
+        <div class="tabs">
+
+           <div class="tab">
+               <input type="radio" id="tab-1" name="tab-group-1" checked>
+               <label for="tab-1" class="tab-label">User Stories</label>
+
+               <div class="tab-content">
+                   <div class="interface">
+                       <div id="iterationDropdown"></div>
+                       <div id="btnStory"></div>
+                       <div id="tableStory"></div>
+                   </div>
+               </div>
+           </div>
+
+           <div class="tab">
+               <input type="radio" id="tab-2" name="tab-group-1">
+               <label for="tab-2" class="tab-label">Backlogs</label>
+
+               <div class="tab-content">
+                   <div class="interface">
+                       <div id="iterationDropdown"></div>
+                       <div id="btnBacklog"></div>
+                       <div id="tableBacklog"></div>
+                   </div> 
+               </div>
+           </div>
+
+        </div>
+    </body>
+
+    <script type="text/javascript" src="https://rally1.rallydev.com/apps/1.33/sdk.js"></script>
+    <script type="text/javascript">
+        (function() {
+            PrintUserStories = (function() {
+                var self = null;
+
+                return {
+                    wsOid: '__WORKSPACE_OID__'
+                    // wsOid: 9406045139
+                    ,projOid: '__PROJECT_OID__'
+                    // ,projOid: 9743538681
+                    ,appType: 'Story'
+                    ,maxNameLength: 115
+                    ,numCardPerPage: 1
+                    ,init: (function(options) {
+                        self = this;
+
+                        for (var prop in options) {
+                            if (options.hasOwnProperty(prop)) {
+                                self[prop] = options[prop];
+                            }
+                        }
+
+                        rally.addOnLoad(function() {
+                            self.rallyDataSource = new rally.sdk.data.RallyDataSource(self.wsOid,
+                                self.projOid, '__PROJECT_SCOPING_UP__', '__PROJECT_SCOPING_DOWN__');
+
+                            if (self.appType === 'Story') {
+                                self.buildIterationDropDown();
+                            } else {
+                                self.runIterationQuery();
+                            }
+
+                            self.buildPrintButton();
+                        });
+                    })
+
+                    /*
+                     * Build UI components
+                     */
+                    ,buildPrintButton: (function() {
+                        var config = {
+                            text:  'Print ' + self.appType + ' Cards',
+                            value: 'myValue'
+                        };
+
+                        var button = new rally.sdk.ui.basic.Button(config);
+                        button.display(self.buttonPlaceholder, self.printSelected);
+                    })
+                    ,buildIterationDropDown: (function() {
+                        var dropdown = new rally.sdk.ui.IterationDropdown({}, self.rallyDataSource);
+
+                        dropdown.display('iterationDropdown', self.runIterationQuery);
+                        self.iterationDropdown = dropdown;
+                    })
+                    ,buildStoryTable: (function(results) {
+                        table = self.table;
+
+                        if (table) {
+                            table.destroy();
+                        }
+
+                        var rankIx = 1;
+
+                        for (var i=0; i < results.records.length; i++, rankIx++) {
+                            results.records[i].Ranking = rankIx;
+                        }
+
+                        var tableConfig = {
+                            columnKeys: ['Ranking', 'FormattedID', 'Name' ]
+                            ,columnHeaders: ['Ranking', 'FormattedID', 'Name' ]
+                            ,columnWidths : ['60px', '80px', '360px']
+                            ,width: 600
+                        };
+
+                        var table = new rally.sdk.ui.Table(tableConfig);
+
+                        table.addRows(results.records);
+                        table.display(document.getElementById(self.tablePlaceholder));
+
+                        self.table = table;
+                    })
+                    ,buildCards: (function(results, rankHash) {
+                        var estimate, loginName, ownerClass, storyId, rankNum, description,
+                            stCount, name, markUp = '', ownerText, totalStories;
+
+                        // Sanitize
+                        delete results['warnings'];
+                        delete results['errors'];
+
+                        stCount = 0;
+                        totalStories = self.totalStories(results);
+
+                        for (var r in results) {
+                            var result = results[r][0];
+
+                            name = result.Name;
+                            if (name.length > self.maxNameLength) {
+                                name = name.substring(0, self.maxNameLength);
+                                name += '...';
+                            }
+
+                            loginName = result.Owner;
+                            if (typeof loginName === 'undefined' || loginName === null) {
+                                ownerClass = 'NoOwner';
+                                ownerText = 'No Owner';
+                            } else {
+                                ownerClass = loginName.UserName.replace(/[@|\.]/g, "");
+                                ownerText = loginName._refObjectName
+                            }
+
+                            if (result.PlanEstimate) {
+                                estimate = result.PlanEstimate;
+                            } else if (result.Estimate) {
+                                estimate = result.Estimate;
+                            } else {
+                                estimate = 'None';
+                            }
+
+                            storyId = result.FormattedID;
+                            rankNum = rankHash[storyId];
+                            description = result.Description;
+                            markUp += self.markUpCards(stCount, totalStories, storyId, rankNum, ownerText, ownerClass, name, description, estimate);
+
+                            stCount ++;
+                        }
+
+                        self.printCards(markUp);
+                    })
+                    ,markUpCards: (function(stCount, totalCards, storyId, rankNum, ownerText, ownerClass, name, description, estimate) {
+                        var markUp ='<div class="artifact">' +
+                                        '<div class="ratio-control">' +
+                                            '<div class="card-frame">' +
+                                                '<div class="header">' +
+                                                    '<span class="storyID">' + rankNum + ' - ' + storyId + '</span>' +
+                                                    '<span class="owner ' + ownerClass + '">' + '</span>' +
+                                                    '<span class="ownerText">' + ownerText + '</span>' +
+                                                '</div>' +
+                                                '<div class="content">' +
+                                                    '<div class="card-title">' + name + '</div>' +
+                                                    '<div class="description">' + description + '</div>' +
+                                                '</div>' +
+                                                '<span class="estimate">' + estimate + '</span>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>';
+
+
+                        if ((stCount + 1) % self.numCardPerPage === 0) {
+                            markUp = markUp + '<div class=pb></div>';
+                        } else if (stCount === totalCards - 1) {
+                            markUp = markUp + '<div class=cb>&nbsp;</div>';
+                        }
+
+                        return markUp;
+                    })
+
+                    /*
+                     * Actions
+                     */
+                    ,printSelected: (function() {
+                        var rankHash = new Object;
+                        var selected = dojo.query('.dojoxGridRow[aria-selected=true]').query('.dojoxGridCell[idx=1]');
+                        var rankNum = dojo.query('.dojoxGridRow[aria-selected=true]').query('.dojoxGridCell[idx=0]');
+                        var storyIDs = [];
+
+                        for (var i = 0; i < selected.length; i++) {
+                            storyIDs.push(selected[i].innerHTML);
+                            rankHash[selected[i].innerHTML] = rankNum[i].innerHTML;
+                        }
+
+                        self.queryStories(storyIDs, rankHash);
+                    })
+                    ,runIterationQuery: (function() {
+                        // var query = '(((Release = null) AND (Iteration = null)) AND (DirectChildrenCount = 0))'; // Backlog
+                        var query = '((Release = null) AND (Iteration = null))'; // Backlog
+
+                        if (self.appType == 'Story') {
+                            query = '(Iteration.Name contains "' + self.iterationDropdown.getSelectedName() + '")';
+                        }
+
+                        var queryArray = [{
+                            key: 'records'
+                            ,type: 'hierarchicalrequirement'
+                            ,query: query
+                            ,fetch: 'Name,Iteration,Owner,FormattedID,PlanEstimate,ObjectID,Description,UserName,Rank'
+                            ,order: 'Rank'
+                        }];
+
+                        self.rallyDataSource.findAll(queryArray, self.buildStoryTable);
+                    })
+                    ,queryStories: (function(idArray, rankHash) {
+                        var sQueryArray = [];
+
+                        for (var i = 0; i < idArray.length; i++) {
+                            var qHash = {
+                                key: 'stories' + i
+                                ,type: 'hierarchicalrequirement'
+                                ,query: '(FormattedID = "' + idArray[i] + '")'
+                                ,fetch: 'Name,Iteration,Owner,FormattedID,PlanEstimate,ObjectID,Description,UserName,Rank'
+                                ,order: 'Rank'
+                            };
+
+                            sQueryArray.push(qHash);
+                        };
+
+                        self.rallyDataSource.findAll(sQueryArray, function(results) {
+                            self.buildCards(results, rankHash);
+                        });
+                    })
+                    ,printCards: (function(markUp) {
+                        var title = 'Boost Stories',
+                            options = 'toolbar=1,menubar=1,scrollbars=yes,scrolling=yes,resizable=yes,width=1000,height=500',
+                            printWindow = window.open('', title, options),
+                            doc = printWindow.document,
+                            styleSheet = self.getStyleSheet();
+
+                        doc.write('<html><head><title>' + title + '</title>');
+                        doc.write('<style>');
+                        doc.write(styleSheet);
+                        doc.write('</style>');
+                        doc.write('</head><body class="landscape">');
+                        doc.write(markUp);
+                        doc.write('</body></html>');
+                        doc.close();
+
+                        printWindow.print();
+                        return false;
+                    })
+                    ,getStyleSheet: (function() {
+                        var styleSheet;
+
+                        dojo.forEach(dojo.query('style'), function(s) {
+                            if (s.title == 'printStories') {
+                                styleSheet = s;
+                            }
+                        });
+
+                        return styleSheet.innerHTML;
+                    })
+                    ,totalStories: (function(results){
+                        var size = 0,
+                            key;
+
+                        for (key in results) {
+                            if (results.hasOwnProperty(key)) size ++;
+                        }
+
+                        return size;
+                    })
+                };
+            });
+
+            var printBacklogApp = new PrintUserStories();
+
+            printBacklogApp.init({
+                appType: 'Backlog'
+                ,buttonPlaceholder: 'btnBacklog'
+                ,tablePlaceholder: 'tableBacklog'
+            });
+
+            var printStoryApp = new PrintUserStories();
+
+            printStoryApp.init({
+                appType: 'Story'
+                ,buttonPlaceholder: 'btnStory'
+                ,tablePlaceholder: 'tableStory'
+            });
+        })();
+    </script>
+</html>
