@@ -85,11 +85,15 @@ body {
     margin-top: 0.3em;
 }
 
-.estimate {
+.estimate, .rank {
     bottom: .2em;
     position: absolute;
     right: 0.5em;
     font: 3em / 1.26 Arial, Helvetica, sans-serif;
+}
+
+.rank {
+    left: 0.5em;
 }
 
 .content {

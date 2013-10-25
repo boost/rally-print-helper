@@ -4,7 +4,7 @@ Ext.define('CustomApp', {
     ,printTitle: 'Boost Print Helper'
     ,styleSheetPath: 'print.css'
     ,remote: false
-    ,rawStyle: 'html{background-color:#fff;color:#000;font:1em / 1.26 Arial,Helvetica,sans-serif;margin:0;padding:0}body{background-color:#fff;margin:0;padding:0}.pb{page-break-after:right;clear:both}.artifact{display:inline-block;position:relative;width:99%;background-color:#fff;border:.2em solid #000}.ratio-control{padding-top:65%}.card-frame{position:absolute;top:0;bottom:0;left:0;right:0}.header{border:.8em grey;border-bottom-style:solid;height:15%;vertical-align:middle;width:100%}.card-title{font:700 2.7em Genova,sans-serif;padding-left:.3em;padding-top:.5em}.description{float:left;font:1.4em Georgia,sans-serif;margin:.25em auto 0;padding-left:1em;padding-right:1em;padding-top:2em;overflow-y:hidden;word-wrap:break-word}.owner{float:right;height:2%}.ownerText{float:right;font:2.5em / 1.26 Arial,Helvetica,sans-serif;margin-right:.3em;margin-top:.4em}.storyID{float:left;font:3em / 1.26 Arial,Helvetica,sans-serif;margin-left:.25em;margin-top:.3em}.estimate{bottom:.2em;position:absolute;right:.5em;font:3em / 1.26 Arial,Helvetica,sans-serif}.content{height:80%;overflow:hidden;width:100%}'
+    ,rawStyle: '.interface,#printSection{margin:.1em}html{background-color:#fff;color:#000;font:1em / 1.26 Arial,Helvetica,sans-serif;margin:0;padding:0}body{background-color:#fff;margin:0;padding:0}.pb{page-break-after:right;clear:both}.artifact{display:inline-block;position:relative;width:99%;background-color:#fff;border:.2em solid #000}.ratio-control{padding-top:65%}.card-frame{position:absolute;top:0;bottom:0;left:0;right:0}.header{border:.8em grey;border-bottom-style:solid;height:15%;vertical-align:middle;width:100%}.card-title{font:700 2.7em Genova,sans-serif;padding-left:.3em;padding-top:.5em}.description{float:left;font:1.4em Georgia,sans-serif;margin:.25em auto 0;padding-left:1em;padding-right:1em;padding-top:2em;overflow-y:hidden;word-wrap:break-word}.owner{float:right;height:2%}.ownerText{float:right;font:2.5em / 1.26 Arial,Helvetica,sans-serif;margin-right:.3em;margin-top:.4em}.storyID{float:left;font:3em / 1.26 Arial,Helvetica,sans-serif;margin-left:.25em;margin-top:.3em}.estimate,.rank{bottom:.2em;position:absolute;right:.5em;font:3em / 1.26 Arial,Helvetica,sans-serif}.rank{left:.5em}.content{height:80%;overflow:hidden;width:100%}'
     ,launch: function() {
         var self = this
 
@@ -56,8 +56,30 @@ Ext.define('CustomApp', {
 
         var store = Ext.create('Rally.data.WsapiDataStore', {
             model: 'User Story'
-            ,autoLoad: hideIteration
+            ,autoLoad: false
+            ,sorters: [{
+                property: 'Rank'
+                ,direction: 'ASC'
+            }]
         });
+
+        if (hideIteration) {
+            var filters = [{
+                property: 'Release'
+                ,operator: '='
+                ,value: 'null'
+            }, {
+                property: 'Iteration'
+                ,operator: '='
+                ,value: 'null'
+            }, {
+                property: 'DirectChildrenCount'
+                ,operator: '='
+                ,value: '0'
+            }];
+
+            store.filter(filters);
+        }
 
         return Ext.create('Ext.grid.Panel', {
             title: title
@@ -174,6 +196,7 @@ Ext.define('CustomApp', {
                                 '<span class="description">{description}</span>',
                             '</div>',
                             '<span class="estimate">{estimate}</span>',
+                            '<span class="rank">{#}</span>',
                         '</div>',
                     '</div>',
                 '</div>',
