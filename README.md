@@ -16,6 +16,10 @@ This app utilizes the print driver on your computer to dictate the size. It is b
 
 ## DONE
 
+## shout outs
+- Ben Aluan for his mad JS skills
+- Boost New Media for R&D time
+
 ## License
 
 AppTemplate is released under the MIT license.  See the file [LICENSE](https://raw.github.com/RallyApps/AppTemplate/master/LICENSE) for the full text.
