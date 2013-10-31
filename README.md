@@ -1,4 +1,4 @@
-boost-rallyprinter
+Rally Print Helper
 =========================
 
 ## Overview
