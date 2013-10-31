@@ -11,8 +11,10 @@ This app utilizes the print driver on your computer to dictate the size. It is b
 - Alert when try to print with nothing selected
 - Printing defects and defect suites
 
-### Yet to come
+## Yet to come
 - Card Builder
+
+## DONE
 
 ## License
 
