@@ -118,6 +118,10 @@ Ext.define('CustomApp', {
             var store = Ext.create('Rally.data.WsapiDataStore', {
                 model: 'Iteration'
                 ,fetch: true
+                ,sorters: [{
+                    property: 'EndDate'
+                    ,direction: 'DESC'
+                }]
             });
 
             var iterationBox = Ext.create('Ext.form.field.ComboBox', {
@@ -174,7 +178,7 @@ Ext.define('CustomApp', {
             filters: filters
         });
 
-        storiesStore.filter(filters);       r
+        storiesStore.filter(filters);
     })
 
     ,printIteration: (function(cb) {
