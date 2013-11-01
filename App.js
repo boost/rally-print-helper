@@ -2,27 +2,12 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App'
     ,componentCls: 'app'
     ,printTitle: 'Boost Print Helper'
-    ,styleSheetPath: 'print.css'
-    ,remote: false
-    ,rawStyle: '.interface,#printSection{margin:.1em}html{background-color:#fff;color:#000;font:1em / 1.26 Arial,Helvetica,sans-serif;margin:0;padding:0}body{background-color:#fff;margin:0;padding:0}.pb{page-break-after:right;clear:both}.artifact{display:inline-block;position:relative;width:99%;background-color:#fff;border:.2em solid #000}.ratio-control{padding-top:65%}.card-frame{position:absolute;top:0;bottom:0;left:0;right:0}.header{border:.8em grey;border-bottom-style:solid;height:15%;vertical-align:middle;width:100%}.card-title{font:700 2.7em Genova,sans-serif;padding-left:.3em;padding-top:.5em}.description{float:left;font:1.4em Georgia,sans-serif;margin:.25em auto 0;padding-left:1em;padding-right:1em;padding-top:2em;overflow-y:hidden;word-wrap:break-word}.owner{float:right;height:2%}.ownerText{float:right;font:2.5em / 1.26 Arial,Helvetica,sans-serif;margin-right:.3em;margin-top:.4em}.storyID{float:left;font:3em / 1.26 Arial,Helvetica,sans-serif;margin-left:.25em;margin-top:.3em}.estimate,.rank{bottom:.2em;position:absolute;right:.5em;font:3em / 1.26 Arial,Helvetica,sans-serif}.rank{left:.5em}.content{height:80%;overflow:hidden;width:100%}'
     ,launch: function() {
         var self = this
 
-        self.setRemote();
         self.buildTabs();
         self.buildIterationGrids();
     }
-
-    ,setRemote: (function() {
-        var self = this,
-            url = window.location.origin,
-            expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
-            regex = new RegExp(expression);
-
-        if (url.match(regex)) {
-            self.remote = true;
-        }
-    })
 
     ,buildTabs: (function() {
         var self = this;
@@ -216,13 +201,7 @@ Ext.define('CustomApp', {
             doc = win.document;
 
         doc.write('<html><head><title>' + self.printTitle + '</title>');
-
-        if (self.remote) {
-            doc.write('<style>' + self.rawStyle + '</style>');
-        } else {
-            doc.write('<link href="' + self.styleSheetPath + '" rel="stylesheet" type="text/css" media="screen,print" />');
-        }
-
+        doc.write('<link href=https://raw.github.com/boost/rally-print-helper/master/print.css rel="stylesheet" type="text/css" media="screen,print" />');
         doc.write('</head><body class="landscape">');
         doc.write(markup);
         doc.write('</body></html>');
