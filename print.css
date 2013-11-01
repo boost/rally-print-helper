@@ -93,7 +93,8 @@ body {
 }
 
 .rank {
-    left: .5em
+    left: .5em;
+    font-size: 1.5em;
 }
 
 .content {

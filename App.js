@@ -2,12 +2,27 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App'
     ,componentCls: 'app'
     ,printTitle: 'Boost Print Helper'
+    ,styleSheetPath: 'print.css'
+    ,remote: false
+
     ,launch: function() {
         var self = this
 
+        self.setRemote();
         self.buildTabs();
         self.buildIterationGrids();
     }
+
+    ,setRemote: (function() {
+        var self = this,
+            url = window.location.origin,
+            expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
+            regex = new RegExp(expression);
+
+        if (url.match(regex)) {
+            self.remote = true;
+        }
+    })
 
     ,buildTabs: (function() {
         var self = this;
@@ -71,12 +86,16 @@ Ext.define('CustomApp', {
             ,store: store
             ,columns: [
                 { xtype: 'rownumberer' }
-                ,{ text: 'ID',  dataIndex: 'FormattedID', flex: 1 }
-                ,{ text: 'Story Name', dataIndex: 'Name', flex: 3 }
+                ,{ text: 'ID',  dataIndex: 'FormattedID', flex: 1, sortable: false }
+                ,{ text: 'Story Name', dataIndex: 'Name', flex: 3, sortable: false }
             ]
             ,selModel: Ext.create('Ext.selection.CheckboxModel', {
                 mode: 'MULTI'
                 ,allowDeselect: true
+                ,listeners: {
+                    scope: self
+                    ,selectionchange: self.selectRecord
+                }
             })
             ,columnLines: true
             ,border: false
@@ -118,11 +137,16 @@ Ext.define('CustomApp', {
 
             store.load();
 
-            items = [iterationBox, '->', {
+            var printBtn = Ext.create('Ext.button.Button', {
                 text: 'Print'
                 ,handler: self.printIteration
                 ,scope: self
-            }];
+                ,disabled: true
+            });
+
+            self.printBtn = printBtn;
+
+            items = [iterationBox, '->', printBtn];
         }
 
         return items;
@@ -150,7 +174,7 @@ Ext.define('CustomApp', {
             filters: filters
         });
 
-        storiesStore.filter(filters);
+        storiesStore.filter(filters);       r
     })
 
     ,printIteration: (function(cb) {
@@ -180,8 +204,8 @@ Ext.define('CustomApp', {
                                 '<span class="card-title">{name}</span>',
                                 '<span class="description">{description}</span>',
                             '</div>',
-                            '<span class="estimate">{estimate}</span>',
-                            '<span class="rank">{#}</span>',
+                            '<span class="estimate">Size: {estimate}</span>',
+                            '<span class="rank">Rank: {#}</span>',
                         '</div>',
                     '</div>',
                 '</div>',
@@ -201,7 +225,13 @@ Ext.define('CustomApp', {
             doc = win.document;
 
         doc.write('<html><head><title>' + self.printTitle + '</title>');
-        doc.write('<link href=https://raw.github.com/boost/rally-print-helper/master/print.css rel="stylesheet" type="text/css" media="screen,print" />');
+
+        if (self.remote) {
+            doc.write('<link href=https://raw.github.com/boost/rally-print-helper/master/print.css rel="stylesheet" type="text/css" media="screen,print" />');
+        } else {
+            doc.write('<link href="' + self.styleSheetPath + '" rel="stylesheet" type="text/css" media="screen,print" />');
+        }
+
         doc.write('</head><body class="landscape">');
         doc.write(markup);
         doc.write('</body></html>');
@@ -228,5 +258,11 @@ Ext.define('CustomApp', {
         });
 
         return data;
+    })
+
+    ,selectRecord: (function(selModel) {
+        var self = this;
+
+        selModel.hasSelection() ? self.printBtn.enable() : self.printBtn.disable();
     })
 });
