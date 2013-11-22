@@ -16,7 +16,7 @@ This app utilizes the print driver on your computer to dictate the size. It is b
 
 ## DONE
 
-## shout outs
+## Shout outs
 - Benedict Aluan for his mad JS skills
 - Boost New Media for R&D time
 
