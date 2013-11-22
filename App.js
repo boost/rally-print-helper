@@ -73,7 +73,7 @@ Ext.define('Boost.rally.PrintGrid', {
 
         var printBtn = Ext.create('Ext.button.Button', {
             text: 'Print'
-            ,handler: self._printIteration
+            ,handler: self._printOptions
             ,scope: self
             ,disabled: true
         });
@@ -113,6 +113,71 @@ Ext.define('Boost.rally.PrintGrid', {
         }
 
         config.tbar = items;
+    })
+
+    ,_printOptions: (function() {
+        var self = this;
+
+        var fieldSet = {
+            xtype: 'fieldset'
+            ,flex: 1
+            ,title: 'Story card fields'
+            ,defaultType: 'checkbox'
+            ,layout: 'anchor'
+            ,defaults: {
+                anchor: '100%'
+                ,hideEmptyLabel: false
+            }
+            ,items: [{
+                boxLabel: 'ID'
+                ,name: 'iteration-id'
+                ,inputValue: 'iteration-id'
+            }, {
+                boxLabel: 'Owner'
+                ,name: 'iteration-owner'
+                ,inputValue: 'iteration-owner'
+            }, {
+                boxLabel: 'Name'
+                ,name: 'iteration-name'
+                ,inputValue: 'iteration-name'
+            }, {
+                boxLabel: 'Description'
+                ,name: 'iteration-description'
+                ,inputValue: 'iteration-description'
+            }, {
+                boxLabel: 'Estimate'
+                ,name: 'iteration-estimate'
+                ,inputValue: 'iteration-estimate'
+            }, {
+                boxLabel: 'Rank'
+                ,name: 'iteration-rank'
+                ,inputValue: 'iteration-rank'
+            }]
+        };
+
+        var fieldsForm = Ext.create('Ext.FormPanel', {
+            fieldDefaults: {
+                labelWidth: 100
+            }
+            ,width: 600
+            ,bodyPadding: 10
+            ,items: [{
+                xtype: 'container'
+                ,layout: 'hbox'
+                ,margin: '0 0 10'
+                ,items: [fieldSet]
+            }]
+        });
+
+        var fieldsWindow = Ext.create('widget.window', {
+            title: 'Print options'
+            ,layout: 'fit'
+            ,closable: true
+            ,modal: true
+            ,items: [fieldsForm]
+        });
+
+        fieldsWindow.show();
     })
 
     ,_printIteration: (function(cb) {
