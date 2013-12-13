@@ -118,54 +118,48 @@ Ext.define('Boost.rally.PrintGrid', {
     ,_printOptions: (function() {
         var self = this;
 
-        var fieldSet = {
-            xtype: 'fieldset'
-            ,flex: 1
-            ,title: 'Story card fields'
-            ,defaultType: 'checkbox'
-            ,layout: 'anchor'
-            ,defaults: {
-                anchor: '100%'
-                ,hideEmptyLabel: false
-            }
-            ,items: [{
-                boxLabel: 'ID'
-                ,name: 'iteration-id'
-                ,inputValue: 'iteration-id'
-            }, {
-                boxLabel: 'Owner'
-                ,name: 'iteration-owner'
-                ,inputValue: 'iteration-owner'
-            }, {
-                boxLabel: 'Name'
-                ,name: 'iteration-name'
-                ,inputValue: 'iteration-name'
-            }, {
-                boxLabel: 'Description'
-                ,name: 'iteration-description'
-                ,inputValue: 'iteration-description'
-            }, {
-                boxLabel: 'Estimate'
-                ,name: 'iteration-estimate'
-                ,inputValue: 'iteration-estimate'
-            }, {
-                boxLabel: 'Rank'
-                ,name: 'iteration-rank'
-                ,inputValue: 'iteration-rank'
-            }]
-        };
-
         var fieldsForm = Ext.create('Ext.FormPanel', {
             fieldDefaults: {
                 labelWidth: 100
             }
-            ,width: 600
+            ,defaultType: 'checkbox'
+            ,width: 400
             ,bodyPadding: 10
             ,items: [{
-                xtype: 'container'
-                ,layout: 'hbox'
-                ,margin: '0 0 10'
-                ,items: [fieldSet]
+                boxLabel: 'ID'
+                ,name: 'iteration-id'
+                ,inputValue: 'iteration-id'
+                ,checked: true
+            }, {
+                boxLabel: 'Owner'
+                ,name: 'iteration-owner'
+                ,inputValue: 'iteration-owner'
+                ,checked: true
+            }, {
+                boxLabel: 'Name'
+                ,name: 'iteration-name'
+                ,inputValue: 'iteration-name'
+                ,checked: true
+            }, {
+                boxLabel: 'Description'
+                ,name: 'iteration-description'
+                ,inputValue: 'iteration-description'
+                ,checked: true
+            }, {
+                boxLabel: 'Estimate'
+                ,name: 'iteration-estimate'
+                ,inputValue: 'iteration-estimate'
+                ,checked: true
+            }, {
+                boxLabel: 'Rank'
+                ,name: 'iteration-rank'
+                ,inputValue: 'iteration-rank'
+                ,checked: true
+            }]
+            ,tbar: ['->', {
+                text: 'Print'
+                ,handler: self._printIteration
+                ,scope: self
             }]
         });
 
@@ -174,9 +168,11 @@ Ext.define('Boost.rally.PrintGrid', {
             ,layout: 'fit'
             ,closable: true
             ,modal: true
+            ,resizable: false
             ,items: [fieldsForm]
         });
 
+        self.fieldsForm = fieldsForm;
         fieldsWindow.show();
     })
 
@@ -191,32 +187,40 @@ Ext.define('Boost.rally.PrintGrid', {
 
     ,_buildTemplate: (function(selections) {
         var self = this,
-            data = self._sanitizeData(selections);
+            data = self._sanitizeData(selections),
+            fieldsForm = self.fieldsForm,
+            formValues = fieldsForm.getValues();
 
-        var tpl = new Ext.XTemplate([
+        var tpl = new Ext.XTemplate(
             '<tpl for="artifacts">',
                 '<div class="artifact">',
                     '<div class="ratio-control">',
                         '<div class="card-frame">',
                             '<div class="header">',
-                            '<span class="storyID">{id}</span>',
-                            '<span class="ownerText">{owner}</span>',
+                            '<span class="storyID {[this.hideElements(\'id\')]}">{id}</span>',
+                            '<span class="ownerText {[this.hideElements(\'owner\')]}">{owner}</span>',
                         '</div>',
                         '<div class="content">',
-                            '<span class="card-title">{name}</span>',
-                            '<span class="description">{description}</span>',
+                            '<span class="card-title {[this.hideElements(\'name\')]}">{name}</span>',
+                            '<span class="description {[this.hideElements(\'description\')]}">{description}</span>',
                         '</div>',
-                        '<span class="estimate">Size: {estimate}</span>',
-                        '<span class="rank">Rank: {#}</span>',
+                        '<tpl if="this.hideElements(estimate)">',
+                            '<span class="estimate {[this.hideElements(\'estimate\')]}">Size: {estimate}</span>',
+                        '</tpl>',
+                        '<span class="rank {[this.hideElements(\'rank\')]}">Rank: {#}</span>',
                         '</div>',
                     '</div>',
                 '</div>',
                 '<div class="{defineBreak}"></div>',
-            '</tpl>'
-        ]);
+            '</tpl>', {
+                compiled: true
+                ,hideElements: (function(element, field) {
+                    return !!formValues['iteration-' + element] ? '' : 'hidden';
+                })
+            }
+        );
 
         var markup = tpl.apply(data);
-
         self._printCards(markup);
     })
 
