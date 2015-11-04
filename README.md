@@ -17,9 +17,9 @@ This app utilizes the print driver on your computer to dictate the size. It is b
 ## DONE
 
 ## Contributors
-- Benedict Aluan @benedictaluan
-- Joe Auslander @jjauslander
-- Boost New Media @boostnewmedia
+- Ben @hapiben
+- Joe @jjauslander
+- Boost @boostnewmedia
 
 ## License
 
